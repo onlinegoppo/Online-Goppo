@@ -241,9 +241,13 @@ export default function AdminPanel({ books, blogs, onRefreshData, onViewPromoPag
   const [blogTitle, setBlogTitle] = useState("");
   const [blogExcerpt, setBlogExcerpt] = useState("");
   const [blogContent, setBlogContent] = useState("");
-  const [blogAuthor, setBlogAuthor] = useState("অ্যাডমিন অনলাইনগল্প");
+  const [blogAuthor, setBlogAuthor] = useState("মাওলানা মুফতি আব্দুল মালেক");
   const [blogCoverUrl, setBlogCoverUrl] = useState("");
   const [blogTags, setBlogTags] = useState("");
+  const [blogCategory, setBlogCategory] = useState("সম্পাদকীয়");
+  const [blogIssue, setBlogIssue] = useState("মে ২০২৬");
+  const [blogMediaList, setBlogMediaList] = useState<{ id: string; name: string; type: "image" | "video"; url: string }[]>([]);
+  const [blogUploadProgress, setBlogUploadProgress] = useState<string | null>(null);
 
   // Form states - Landing Page Builder
   const [lpBookId, setLpBookId] = useState("");
@@ -362,6 +366,15 @@ export default function AdminPanel({ books, blogs, onRefreshData, onViewPromoPag
     e.preventDefault();
     if (!blogTitle || !blogContent) return;
 
+    // Word count validation (minimum 2,000 words to ensure high quality research)
+    const words = blogContent.trim().split(/[\s,।০১২৩৪৫৬৭৮৯]+/);
+    const wordCount = words.filter(w => w.length > 0).length;
+
+    if (wordCount < 2000) {
+      alert(`গবেষণামূলক নিবন্ধের মান রক্ষার্থে ন্যূনতম ২,০০০ শব্দের বিবরণ আবশ্যক। আপনার প্রবন্ধে বর্তমানে ${wordCount}টি শব্দ রয়েছে। অনুগ্রহ করে লেখাটি আরও বিস্তারিত করুন (আরও ${2000 - wordCount} শব্দ যোগ করুন)।\n\nসাহায্যঃ কন্টেন্ট বাক্সের উপরে থাকা 'নমুনা গবেষণামূলক নিবন্ধ' বাটনে ক্লিক করে ২,০০০+ শব্দের নমুনা লেখা অটো-ফিল করতে পারেন!`);
+      return;
+    }
+
     try {
       await createBlog({
         title: blogTitle,
@@ -369,10 +382,12 @@ export default function AdminPanel({ books, blogs, onRefreshData, onViewPromoPag
         content: blogContent,
         author: blogAuthor,
         coverUrl: blogCoverUrl || "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&q=80&w=600",
-        tags: blogTags ? blogTags.split(",").map(t => t.trim()) : ["সাহিত্য", "অনলাইন গল্প"]
+        tags: blogTags ? blogTags.split(",").map(t => t.trim()) : ["গবেষণা", "কলাম"],
+        category: blogCategory,
+        issue: blogIssue
       });
 
-      setSuccessMsg("নতুন ব্লগ পোস্ট সফলভাবে প্রকাশ করা হয়েছে!");
+      setSuccessMsg("নতুন গবেষণামূলক প্রবন্ধ সফলভাবে সংরক্ষণ ও প্রকাশ করা হয়েছে!");
       onRefreshData();
 
       setBlogTitle("");
@@ -380,9 +395,12 @@ export default function AdminPanel({ books, blogs, onRefreshData, onViewPromoPag
       setBlogContent("");
       setBlogCoverUrl("");
       setBlogTags("");
+      setBlogCategory("সম্পাদকীয়");
+      setBlogIssue("মে ২০২৬");
+      setBlogMediaList([]);
       setTimeout(() => setSuccessMsg(null), 3500);
     } catch (err) {
-      alert("ব্লগ পোস্ট প্রকাশ সম্ভব হয়নি।");
+      alert("আর্টিকেল পোস্টিং ব্যর্থ হয়েছে।");
     }
   };
 
@@ -1546,106 +1564,13 @@ export default function AdminPanel({ books, blogs, onRefreshData, onViewPromoPag
                       required
                       placeholder="himu-bosonto"
                       value={lpSlug}
-                      onChange={(e) => setLpSlug(e.target.value)}
-                      className="w-full p-2.5 bg-white border border-gray-200 rounded-lg outline-none text-stone-850"
-                    />
+                      onChange={(e) => setLpSlug(e.target.value)}                    />
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-stone-500 font-bold block">আকর্ষণীয় প্রমো হেডলাইন স্লোগান (Headline Copy)</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="হিমুর বসন্তের প্রথম খুশবু এখনই সংগ্রহ করুন বিশেষ ছাড়ে!"
-                    value={lpHeadline}
-                    onChange={(e) => setLpHeadline(e.target.value)}
-                    className="w-full p-2.5 bg-white border border-gray-200 rounded-lg outline-none text-stone-850"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-stone-500 font-bold block">উপ-শিরোনাম অনুচ্ছেদ (Subheading Copy)</label>
-                  <input
-                    type="text"
-                    placeholder="হুমায়ূন আহমেদের মায়াজাল দিয়ে বোনা হিমু চরিত্রটির অন্যতম চিত্তাকর্ষক একটি উৎসব অধ্যায়।"
-                    value={lpSubheading}
-                    onChange={(e) => setLpSubheading(e.target.value)}
-                    className="w-full p-2.5 bg-white border border-gray-200 rounded-lg outline-none text-stone-850"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-stone-50 rounded-xl border border-stone-150">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-[#C5A059]/5 border border-[#C5A059]/20 rounded-xl mt-4">
                   <div className="space-y-1">
-                    <label className="text-stone-500 font-bold block">ব্যাকগ্রাউন্ড কালার হেক্স (Bg Color)</label>
-                    <input
-                      type="color"
-                      value={lpBgColor}
-                      onChange={(e) => setLpBgColor(e.target.value)}
-                      className="w-full h-10 p-1 border rounded-lg cursor-pointer bg-white"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-stone-500 font-bold block">হরফ কালার হেক্স (Text Color)</label>
-                    <input
-                      type="color"
-                      value={lpTextColor}
-                      onChange={(e) => setLpTextColor(e.target.value)}
-                      className="w-full h-10 p-1 border rounded-lg cursor-pointer bg-white"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-stone-500 font-bold block">বাটন হাইলাইট কালার হেক্স (Accent Color)</label>
-                    <input
-                      type="color"
-                      value={lpAccentColor}
-                      onChange={(e) => setLpAccentColor(e.target.value)}
-                      className="w-full h-10 p-1 border rounded-lg cursor-pointer bg-white"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-stone-500 font-bold block">বিশদ আকর্ষণীয় প্রমো বক্তব্য (Detailed Promo Pitch Paragraph)</label>
-                  <textarea
-                    rows={4}
-                    required
-                    placeholder="এই বইতে রয়েছে এমন সব বাক্য যা মন ছুঁয়ে যাবে। এটি শুধু একটি বই নয়, এটি হিমাপ্রেমীদের হৃদপিণ্ড..."
-                    value={lpPromoText}
-                    onChange={(e) => setLpPromoText(e.target.value)}
-                    className="w-full p-2.5 bg-white border border-gray-200 rounded-lg outline-none text-stone-850 leading-relaxed font-serif text-sm"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-stone-500 font-bold block">বিশেষ অনুপ্রেরণামূলক উক্তি / উদ্ধৃতি (Optional Quote)</label>
-                    <input
-                      type="text"
-                      placeholder="মানুষের সব ইচ্ছা পূরণ হওয়াটাই ট্র্যাজেডি..."
-                      value={lpQuote}
-                      onChange={(e) => setLpQuote(e.target.value)}
-                      className="w-full p-2.5 bg-white border border-gray-200 rounded-lg outline-none text-stone-850"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-stone-500 font-bold block">উদ্ধৃতির রচয়িতা (Quote Author)</label>
-                    <input
-                      type="text"
-                      placeholder="হুমায়ূন আহমেদ"
-                      value={lpQuoteAuthor}
-                      onChange={(e) => setLpQuoteAuthor(e.target.value)}
-                      className="w-full p-2.5 bg-white border border-gray-200 rounded-lg outline-none text-stone-850"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-[#C5A059]/5 border border-[#C5A059]/20 rounded-xl">
-                  <div className="space-y-1">
-                    <label className="text-stone-600 font-bold block flex items-center gap-1">
+                    <label className="text-stone-650 font-bold block flex items-center gap-1">
                       <Sparkles size={12} className="text-[#C5A059]" /> সার্চ ইঞ্জিন এসইও মেটা শিরোনাম (SEO Title)
                     </label>
                     <input
@@ -1658,7 +1583,7 @@ export default function AdminPanel({ books, blogs, onRefreshData, onViewPromoPag
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-stone-600 font-bold block">এসইও মেটা বিবরণ (SEO Metatag Description)</label>
+                    <label className="text-stone-650 font-bold block">এসইও মেটা বিবরণ (SEO Metatag Description)</label>
                     <input
                       type="text"
                       placeholder="অনলাইনগল্প থেকে হুমায়ূন আহমেদের অমর রস রচনা 'হিমুর বসন্ত'-এর বিশেষ লাইব্রেরি কালেকশন আজই সংগ্রহ করুন শ্রেষ্ঠ মূল্যে।"
@@ -1669,10 +1594,10 @@ export default function AdminPanel({ books, blogs, onRefreshData, onViewPromoPag
                   </div>
                 </div>
 
-                <div className="pt-4 border-t border-gray-200 flex justify-end">
+                <div className="pt-4 border-t border-gray-200 flex justify-end mt-4">
                   <button
                     type="submit"
-                    className="px-8 py-3 bg-[#1B263B] hover:bg-[#121A2A] text-white font-bold rounded-lg transition-all shadow-md hover:shadow-lg uppercase cursor-pointer"
+                    className="px-8 py-3 bg-[#1B263B] hover:bg-[#121A2A] text-white font-bold rounded-lg transition-all shadow-md hover:shadow-lg uppercase cursor-pointer text-xs"
                   >
                     ল্যান্ডিং পাতা সৃষ্টি করুন (Create dynamic promotion page)
                   </button>
@@ -1701,12 +1626,12 @@ export default function AdminPanel({ books, blogs, onRefreshData, onViewPromoPag
                   placeholder="ID, ইমেইল, নাম বা TxnID..."
                   value={orderSearchQuery}
                   onChange={(e) => setOrderSearchQuery(e.target.value)}
-                  className="px-3 py-1.5 border border-stone-200 rounded-lg outline-none max-w-xs text-xs"
+                  className="px-3 py-1.5 border border-stone-200 rounded-lg outline-none max-w-xs text-xs bg-white text-stone-800"
                 />
                 <select
                   value={orderStatusFilter}
                   onChange={(e) => setOrderStatusFilter(e.target.value)}
-                  className="px-2 py-1.5 border border-stone-200 rounded-lg text-xs outline-none cursor-pointer"
+                  className="px-2 py-1.5 border border-stone-200 rounded-lg text-xs outline-none cursor-pointer bg-white text-stone-850"
                 >
                   <option value="all">সব অর্ডার (All)</option>
                   <option value="paid">পরিশোধিত (Paid)</option>
@@ -1716,7 +1641,7 @@ export default function AdminPanel({ books, blogs, onRefreshData, onViewPromoPag
               </div>
             </div>
 
-            {filteredOrders.length === 0 ? (
+            {getFilteredOrders().length === 0 ? (
               <p className="text-center text-stone-500 py-12">কোন কাস্টমার অর্ডার খুঁজে পাওয়া যায়নি।</p>
             ) : (
               <div className="overflow-x-auto">
@@ -1733,7 +1658,7 @@ export default function AdminPanel({ books, blogs, onRefreshData, onViewPromoPag
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-150 text-stone-750">
-                    {filteredOrders.map((ord) => (
+                    {getFilteredOrders().map((ord) => (
                       <tr key={ord.id} className="hover:bg-gray-50/50">
                         <td className="py-3 px-3 font-mono font-bold text-stone-900">{ord.id}</td>
                         <td className="py-3 px-3">
@@ -1741,7 +1666,7 @@ export default function AdminPanel({ books, blogs, onRefreshData, onViewPromoPag
                           <span className="block text-stone-400 text-[10px]">{ord.customerEmail}</span>
                           <span className="block text-stone-500 text-[10px] font-mono">{ord.customerPhone}</span>
                           {ord.deliveryAddress && (
-                            <span className="block text-stone-400 text-[9px] bg-stone-100 rounded p-1 max-w-xs mt-1 leading-tight">ঠিকানা: {ord.deliveryAddress}</span>
+                            <span className="block text-stone-400 text-[9px] bg-stone-100 rounded p-1 max-w-xs mt-1 leading-tight text-stone-650">ঠিকানা: {ord.deliveryAddress}</span>
                           )}
                         </td>
                         <td className="py-3 px-3 text-stone-500 whitespace-nowrap">
@@ -1753,7 +1678,7 @@ export default function AdminPanel({ books, blogs, onRefreshData, onViewPromoPag
                             {ord.items.map((it, i) => (
                               <li key={i} className="text-[10px] text-stone-700 leading-tight">
                                 <span className="font-semibold text-stone-900">{it.title}</span> ({it.quantity}X) <br/>
-                                <span className="text-[9px] bg-[#1B263B]/5 text-[#1B263B] px-1 rounded uppercase">{it.type}</span>
+                                <span className="text-[9px] bg-[#1B263B]/5 text-[#1B263B] px-1 rounded uppercase font-bold">{it.type}</span>
                               </li>
                             ))}
                           </ul>
@@ -1777,7 +1702,7 @@ export default function AdminPanel({ books, blogs, onRefreshData, onViewPromoPag
                             <select
                               value={ord.status}
                               onChange={(e) => handleUpdateStatus(ord.id, e.target.value)}
-                              className="text-[9px] text-stone-600 border border-stone-200 focus:outline-none focus:border-stone-400 rounded px-1.5 py-0.5 mt-1 cursor-pointer bg-white"
+                              className="text-[9px] text-stone-600 border border-stone-200 focus:outline-[#1B263B]/30 and border-stone-400 rounded px-1.5 py-0.5 mt-1 cursor-pointer bg-white"
                             >
                               <option value="paid">পেইড মার্ক</option>
                               <option value="shipped">শিপড মার্ক</option>
@@ -1903,6 +1828,35 @@ export default function AdminPanel({ books, blogs, onRefreshData, onViewPromoPag
                   onChange={(e) => setBlogExcerpt(e.target.value)}
                   className="w-full p-2.5 bg-white border border-gray-200 focus:border-[#1B263B]/50 rounded-lg outline-none text-stone-850"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-stone-500 font-bold block">নিবন্ধের সূচী বিভাগ (Journal Category)</label>
+                  <select
+                    value={blogCategory}
+                    onChange={(e) => setBlogCategory(e.target.value)}
+                    className="w-full p-2.5 bg-white border border-gray-200 focus:border-[#1B263B]/50 rounded-lg outline-none text-stone-850"
+                  >
+                    <option value="সম্পাদকীয়">সম্পাদকীয়</option>
+                    <option value="কুরআন অধ্যয়ন">কুরআন অধ্যয়ন</option>
+                    <option value="হাদীস অধ্যয়ন">হাদীস অধ্যয়ন</option>
+                    <option value="ফিকহ ও ফতোয়া">ফিকহ ও ফতোয়া</option>
+                    <option value="পরিবার ও সমাজ">পরিবার ও সমাজ</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-stone-500 font-bold block">প্রকাশনা সংখ্যা ও হিজরি সন (Issue & Edition)</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="উদাঃ রমজান ১৪৪৭ - মে ২০২৬"
+                    value={blogIssue}
+                    onChange={(e) => setBlogIssue(e.target.value)}
+                    className="w-full p-2.5 bg-white border border-gray-200 focus:border-[#1B263B]/50 rounded-lg outline-none text-stone-850"
+                  />
+                </div>
               </div>
 
               <div className="space-y-1">

@@ -36,6 +36,8 @@ export interface BlogPost {
   date: string;
   coverUrl: string;
   tags: string[];
+  category?: string; // e.g. 'আল কুরআন', 'তালীমুল ইসলাম', 'সম্পাদকীয়'
+  issue?: string;    // e.g. 'রমজান ১৪৪৭ - মে ২০২৬'
 }
 
 export interface CartItem {

@@ -1,6 +1,6 @@
 {
   "name": "OnlineGoppo",
-  "description": "A sleek, modern bookstore inspired by the Book Haven aesthetic, featuring physical paperbacks, instant PDF e-books, secure payment options, user digital delivery lockers, and a comprehensive admin analytics dashboard.",
+  "description": "A professional, highly polished Islamic research blog, scholarly columns, and opinion boards inspired by Al-Kawsar, featuring organized monthly volume listing, integrated advertiser monetization bars, and respect feedback forms.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

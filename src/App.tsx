@@ -8,6 +8,7 @@ import { Book, BlogPost, CartItem, SiteSettings, LandingPage } from "./types";
 import { fetchBooks, fetchBlogs, fetchSettings } from "./api";
 import Header from "./components/Header";
 import Hero from "./components/Hero";
+import HomePortal from "./components/HomePortal";
 import BookGrid from "./components/BookGrid";
 import BookDetail from "./components/BookDetail";
 import Cart from "./components/Cart";
@@ -42,6 +43,7 @@ export default function App() {
 
   // Modal / Gateway States
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [selectedBlogPost, setSelectedBlogPost] = useState<BlogPost | null>(null);
   const [showCheckout, setShowCheckout] = useState(false);
 
   // Secure User Auth Session States
@@ -201,184 +203,24 @@ export default function App() {
           <>
             {/* TAB 1: HOME PAGE ROUTER */}
             {currentTab === "home" && (
-              <div className="handle-animation-fade-in space-y-16">
-                
-                {/* Hero Showcase block */}
-                <Hero
-                  featuredBooks={books}
-                  onSelectBook={setSelectedBook}
-                  onExploreShop={() => setCurrentTab("shop")}
+              <div className="handle-animation-fade-in">
+                <HomePortal
+                  books={books}
+                  blogs={blogs}
                   siteSettings={siteSettings}
+                  onSelectBook={setSelectedBook}
+                  onSelectBlog={(blog) => {
+                    setSelectedBlogPost(blog);
+                    setCurrentTab("blog");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  setCurrentTab={(tab) => {
+                    setCurrentTab(tab);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  setSearchQuery={setSearchQuery}
+                  onDirectCheckout={handleDirectCheckout}
                 />
-
-                {/* BESTSELLERS SECTION - মুদ্রিত সেরা বিক্রেতা */}
-                <section className="max-w-7xl mx-auto px-4 md:px-6">
-                  <div className="flex items-end justify-between border-b border-gray-200 pb-3 mb-8">
-                    <div>
-                      <div className="text-[#C5A059] text-xs font-bold uppercase tracking-widest font-sans flex items-center gap-1.5 mb-1">
-                        <Sparkles size={12} /> Bestselling Masterpieces
-                      </div>
-                      <h2 className="text-2xl md:text-3xl font-serif font-bold text-gray-900">
-                        সেরা বিক্রেতা (Bestsellers Shelf)
-                      </h2>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setCurrentTab("shop");
-                        window.scrollTo({ top: 0, behavior: "smooth" });
-                      }}
-                      className="text-xs text-[#1B263B] hover:text-[#C5A059] font-semibold flex items-center gap-1 hover:underline"
-                    >
-                      সব বই দেখুন <MoveRight size={14} />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                    {bestsellers.map((book) => (
-                      <div
-                        key={book.id}
-                        onClick={() => setSelectedBook(book)}
-                        className="group bg-white border border-gray-200 hover:border-[#C5A059]/40 p-3.5 rounded-xl flex flex-col justify-between transition-all duration-350 cursor-pointer shadow-sm hover:shadow-md"
-                      >
-                        <div className="aspect-[3/4] rounded-lg overflow-hidden relative shadow-sm mb-3">
-                          <img src={book.coverUrl} alt={book.title} referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-103 duration-300" />
-                          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-black/15 shadow-[inset_-1px_0_0_rgba(255,255,255,0.1)]"></div>
-                        </div>
-                        <div>
-                          <span className="text-[9px] uppercase tracking-wider text-gray-400 block mb-0.5">{book.author}</span>
-                          <h3 className="font-serif text-sm font-bold text-gray-900 group-hover:text-[#1B263B] transition-colors line-clamp-1">{book.title}</h3>
-                          <div className="flex justify-between items-center pt-2 mt-2 border-t border-gray-200">
-                            <span className="font-serif text-xs font-semibold text-[#1B263B]">৳{book.price}</span>
-                            <span className="bg-[#1B263B]/10 text-[#1B263B] text-[8px] font-bold py-0.5 px-1.5 rounded uppercase font-sans">
-                              {book.type === "ebook" ? "PDF" : "Paperback"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
-                {/* PROMOTION / HIGHLIGHT AD GRAPHIC CAROUSEL BLOCK */}
-                <section className="bg-gradient-to-r from-[#1B263B] to-[#121A2A] text-[#FBFBFB] py-12">
-                  <div className="max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-1 md:grid-cols-12 gap-8 items-center text-left">
-                    <div className="md:col-span-8 space-y-4">
-                      <div className="bg-[#C5A059]/20 text-[#C5A059] px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase inline-block font-mono border border-[#C5A059]/25">
-                        Digital Reader Promotion • ডেসটপ বা মোবাইলে
-                      </div>
-                      <h3 className="font-serif text-3xl md:text-4xl font-bold tracking-tight">
-                        যেকোনো মুহূর্তেই ই-বুক কিনুন, <br />
-                        তাত্ক্ষণিক ডাউনলোড লিংক বুঝে নিন!
-                      </h3>
-                      <p className="text-[#F1F3F5] text-xs md:text-sm font-sans max-w-xl leading-relaxed">
-                        কোনো কুরিয়ারের অপেক্ষা ছাড়াই, পছন্দসই ই-বুকটি ক্রয় করামাত্রই আপনার ইউজার ড্যাশবোর্ডে এবং নিবন্ধিত ইমেইলে সোর্স কোডসহ সুরক্ষিত পিডিএফ ফাইল চলে যাবে। সাথে পাচ্ছেন লাইফটাইম অ্যাক্সেস।
-                      </p>
-                    </div>
-
-                    <div className="md:col-span-4 flex justify-start md:justify-end">
-                      <button
-                        onClick={() => {
-                          setCurrentTab("shop");
-                          window.scrollTo({ top: 0, behavior: "smooth" });
-                        }}
-                        className="px-6 py-3.5 bg-[#C5A059] hover:bg-[#b58f48] text-white font-bold rounded-lg text-xs shadow-lg transition-all flex items-center gap-2 group cursor-pointer uppercase"
-                      >
-                        পিডিএফ বইসমূহ দেখুন <MoveRight size={14} className="group-hover:translate-x-1 duration-200" />
-                      </button>
-                    </div>
-                  </div>
-                </section>
-
-                {/* DYNAMIC NEW ARRIVALS - নতুন ও অপ্রকাশিত বইসমূহ */}
-                <section className="max-w-7xl mx-auto px-4 md:px-6">
-                  <div className="flex items-end justify-between border-b border-gray-200 pb-3 mb-8">
-                    <div>
-                      <div className="text-[#C5A059] text-xs font-bold uppercase tracking-widest font-sans flex items-center gap-1.5 mb-1">
-                        <Clock size={12} /> New Releases Shelf
-                      </div>
-                      <h2 className="text-2xl md:text-3xl font-serif font-bold text-gray-900">
-                        নতুন আয়োজন (New Arrivals)
-                      </h2>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setCurrentTab("shop");
-                        window.scrollTo({ top: 0, behavior: "smooth" });
-                      }}
-                      className="text-xs text-[#1B263B] hover:text-[#C5A059] font-semibold flex items-center gap-1 hover:underline"
-                    >
-                      সব নতুন বই দেখুন <MoveRight size={14} />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                    {newArrivals.map((book) => (
-                      <div
-                        key={book.id}
-                        onClick={() => setSelectedBook(book)}
-                        className="group bg-white border border-gray-200 hover:border-[#C5A059]/40 p-3.5 rounded-xl flex flex-col justify-between transition-all duration-350 cursor-pointer shadow-sm hover:shadow-md"
-                      >
-                        <div className="aspect-[3/4] rounded-lg overflow-hidden relative shadow-sm mb-3">
-                          <img src={book.coverUrl} alt={book.title} referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-103 duration-300" />
-                          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-black/15 shadow-[inset_-1px_0_0_rgba(255,255,255,0.1)]"></div>
-                        </div>
-                        <div>
-                          <span className="text-[9px] uppercase tracking-wider text-gray-400 block mb-0.5">{book.author}</span>
-                          <h3 className="font-serif text-sm font-bold text-gray-900 group-hover:text-[#1B263B] transition-colors line-clamp-1">{book.title}</h3>
-                          <div className="flex justify-between items-center pt-2 mt-2 border-t border-gray-200">
-                            <span className="font-serif text-xs font-semibold text-[#1B263B]">৳{book.price}</span>
-                            <span className="bg-[#1B263B]/10 text-[#1B263B] text-[8px] font-bold py-0.5 px-1.5 rounded uppercase font-sans">
-                              {book.type === "ebook" ? "PDF" : "Paperback"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
-                {/* BLOG HIGHLIGHT PREVIEW BAR AS REQUESTED */}
-                {blogs.length > 0 && (
-                  <section className="bg-gray-50 border-y border-gray-205 py-12 font-sans">
-                    <div className="max-w-7xl mx-auto px-4 md:px-6 space-y-8">
-                      <div className="text-center space-y-1.5">
-                        <span className="text-[#C5A059] text-[10px] font-bold uppercase tracking-widest">Latest from Literary Columns</span>
-                        <h2 className="text-2xl md:text-3xl font-serif font-bold text-gray-950">সবশেষ সাহিত্য পর্যালোচনা (From Blog)</h2>
-                        <p className="text-gray-500 text-xs">আমাদের বুক রিভিউ কলাম থেকে বাছাইকৃত কয়েকটি আকর্ষণীয় প্রবন্ধ</p>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-2">
-                        {blogs.slice(0, 2).map((post) => (
-                          <div 
-                            key={post.id}
-                            onClick={() => {
-                              setCurrentTab("blog");
-                              window.scrollTo({ top: 0, behavior: "smooth" });
-                            }}
-                            className="bg-white rounded-xl border border-gray-200 p-5 flex flex-col md:flex-row gap-4 shadow-sm hover:shadow-md transition-all cursor-pointer group"
-                          >
-                            <div className="w-full md:w-1/3 aspect-[4/3] rounded-lg overflow-hidden border border-gray-150 bg-gray-50 flex-shrink-0">
-                              <img src={post.coverUrl} alt={post.title} referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-104 duration-300" />
-                            </div>
-                            <div className="flex-grow flex flex-col justify-between py-1">
-                              <div>
-                                <span className="text-[9px] text-[#C5A059] font-bold uppercase font-sans">{post.tags[0]}</span>
-                                <h4 className="font-serif text-sm font-bold text-gray-900 group-hover:text-[#1B263B] transition-colors line-clamp-2 leading-snug mt-1">
-                                  {post.title}
-                                </h4>
-                                <p className="text-gray-500 text-[11px] line-clamp-2 leading-relaxed mt-2">{post.excerpt}</p>
-                              </div>
-                              <span className="text-[10px] text-[#C5A059] font-bold flex items-center gap-1 group-hover:translate-x-1 duration-200 mt-3 pt-3 border-t border-gray-200">
-                                পুরো নিবন্ধ পড়ুন <ChevronRight size={10} />
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </section>
-                )}
-
               </div>
             )}
 
@@ -408,6 +250,10 @@ export default function App() {
             {currentTab === "blog" && (
               <BlogSection
                 blogs={blogs}
+                initialSelectedPost={selectedBlogPost}
+                onClearSelectedPost={() => setSelectedBlogPost(null)}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
               />
             )}
 
